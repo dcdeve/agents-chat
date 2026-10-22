@@ -156,9 +156,12 @@ implica que la terminal se haya cerrado ni reasigna trabajo.
 ## Límites y condición de avance
 
 El estado del servicio está en SQLite. `internal/probe` conserva exclusivamente el
-modelo volátil de las pruebas originales. Todavía no se implementaron tareas,
-artefactos, revisiones, votos, worktrees, integración Git ni adaptadores de
-reactivación. Tampoco se ejecutó una prueba real de modelos en Linux.
+modelo volátil de las pruebas originales. Tareas, artefactos, revisiones, votos
+de liderazgo, worktrees e integración Git están implementados (ver
+[fases 3–5](docs/phases-3-5.md)), pero sólo se probaron con clientes simulados.
+Todavía no hay adaptadores de reactivación, ni pruebas de integración con
+repositorios reales, ni traspaso de liderazgo con una integración activa.
+Tampoco se ejecutó una prueba real de modelos en Linux.
 
 Un bridge puede seguir conectado con el agente inactivo. Un ACK sólo prueba
 recepción declarada. El registro no captura conversaciones privadas, comandos
