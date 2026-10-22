@@ -1,5 +1,9 @@
 # agents-chat
 
+> [!WARNING]
+> **Proyecto experimental.** La API, el formato de datos y el comportamiento
+> pueden cambiar sin aviso. No usar en producción.
+
 Herramienta local Go para comunicar CLI iniciadas manualmente mediante MCP.
 No inicia ni supervisa agentes. La condición de avance de fase 0 fue aprobada
 por el usuario el 2026-10-21. Están implementados el núcleo persistente y la
