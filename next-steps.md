@@ -79,6 +79,56 @@ auditable.
      agentes", y la prueba de continuidad tendría que redefinirse, porque
      reactivar al agente pasaría a ser parte del sistema y no una
      intervención humana.
+   - **Hipótesis principal (tras investigar las CLI instaladas):** un
+     supervisor determinista dentro de `collab` que arranca los workers y les
+     entrega trabajo por push.
+
+     **Qué ofrece cada CLI** (según `--help`; sin probar con el MCP de collab):
+
+     | CLI | Modo sin interfaz, persistente | Reanudar conversación | Mensaje a sesión abierta |
+     |---|---|---|---|
+     | Claude Code 2.1.306 | `claude -p --input-format stream-json --output-format stream-json` | `--resume <id>` / `-c` | `claude --bg` + `claude agents`/`attach`/`logs`; canales |
+     | Codex 0.163.0 | `codex app-server` (experimental), `codex exec --json` | `codex exec resume <id>` | `codex queue --thread <id> --message …` |
+     | agy 1.4.4 | `agy -p --input-format stream-json --output-format stream-json` | `--conversation <id>` / `-c` | `agy remote-control` (sin verificar) |
+
+     **Diseño:**
+     - `collab` arranca cada worker en modo streaming con su carpeta de
+       arranque, identidad MCP, skills del perfil (P2.12) y permisos
+       configurados.
+     - Cuando el daemon registra un mensaje o una asignación para un agente, el
+       supervisor le escribe un turno. Los agentes en reposo no consumen
+       tokens: en la primera sesión hubo 37 ciclos vacíos, aquí serían 0.
+     - El fin de turno deja de ser un fallo: el supervisor despierta al agente
+       cuando hay trabajo. Esto resuelve el problema de continuidad de P0.1.
+     - El coordinador sigue usando MCP. Podría pedir workers con una
+       herramienta tipo `request_worker(profile)` que el supervisor ejecuta
+       según una política (límites, perfiles permitidos, aprobación humana
+       opcional).
+     - Visibilidad: logs stream-json por agente integrados en la vista HTML;
+       modo híbrido con `claude --bg` + `attach` o `codex queue` cuando se
+       quiera ver la sesión.
+
+     **Por qué no conviene que el orquestador LLM gestione los procesos:**
+     Claude puede lanzar procesos y gestionar sesiones `--bg`. Pero si el
+     coordinador termina su turno, compacta o cae, los workers quedan sin
+     supervisión: es el mismo problema de continuidad, trasladado. Además cada
+     decisión de administración gastaría tokens, y un coordinador manipulado
+     podría lanzar procesos con permisos completos.
+
+     **Riesgos a verificar:**
+     - En modo headless no hay confirmaciones interactivas: hace falta una
+       lista de permisos previa por perfil o permisos completos (aceptable en
+       pruebas).
+     - Menos visibilidad en vivo que con terminales abiertas.
+     - Crecimiento del contexto en un proceso persistente frente a reanudar la
+       conversación en cada evento.
+     - Que el MCP de collab funcione dentro de cada modo headless.
+     - Qué permite realmente `agy remote-control`.
+
+     **Prueba técnica propuesta:** un `collab run` mínimo que arranque un `agy`
+     en stream-json, le entregue un turno cuando llegue un mensaje a su buzón y
+     mida tokens, latencia y respuesta por MCP. Después, lo mismo con Codex y
+     Claude, comparado con la opción (a).
 10. **M11:** falsos `unreachable` mientras un agente trabaja en local sin llamar
     al MCP. Hace falta un heartbeat, o que `set_activity working` alargue el
     lease. Ensucia cualquier medición de continuidad.
