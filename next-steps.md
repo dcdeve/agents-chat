@@ -193,3 +193,51 @@ auditable.
     `request_review` y el `seq` de un replay idempotente.
 23. **Mínimo de participantes configurable** para pruebas con dos agentes, sin
     que esas ejecuciones cuenten para la certificación.
+
+## Posible enfoque para la siguiente iteración
+
+Propuesta en discusión, no decidida. Ordena las dos ideas planteadas tras la
+primera sesión como capas independientes:
+
+- **Núcleo:** collab y cómo se despierta a los agentes.
+- **Dónde corre:** máquina local o un VPS.
+- **Cómo se ve y se maneja:** remote control o un chat.
+
+Lo que todavía no se sabe está en el núcleo, así que va primero.
+
+1. **Prueba técnica del supervisor en local.** `collab run` arranca un `agy` y
+   un `codex` en modo headless y les entrega trabajo por push (ver la hipótesis
+   principal de P1.9). Decide la arquitectura.
+2. **Arreglar sólo los bugs que rompen el ciclo de coordinación:** H1 y H2
+   (reasignar tareas, que `revoke_agent` libere recursos), H3
+   (`decline_task`), H5/M7/M8 (formatos MCP claros) y el idioma de los agentes
+   (P1.11). No arreglar todos antes: con push, M11 y M12 cambian de sentido, y
+   la integración Git o el liderazgo no afectan a la segunda prueba.
+3. **Mover todo al VPS** y hacer allí la segunda prueba. Claude Code como
+   coordinador con remote control, y workers con permisos completos y perfiles
+   (P2.12).
+   - Ventajas: aislamiento adecuado para permisos completos (el daño queda en
+     el VPS), siempre encendido, cubre la prueba en Linux pendiente, y permite
+     seguir y aprobar desde el móvil (relacionado con P2.13).
+   - Por verificar: que `agy` funcione en Linux y permita iniciar sesión sin
+     navegador; dónde guardar las cuentas de Claude, Codex y Antigravity
+     (usuario dedicado, sin otras claves en esa máquina).
+   - Claude **decide** qué workers necesita (`request_worker(profile)`) y
+     collab **ejecuta**. Claude no lanza procesos directamente: si termina su
+     turno o cae, los workers quedarían sin supervisión.
+4. **Chat como adaptador opcional encima** (p. ej. Chat SDK de Vercel), si
+   remote control y la vista HTML no bastan para seguir la conversación. El
+   orquestador sería un bot que crea sesiones de Codex o `agy` y las añade al
+   chat.
+   - Ventajas: conversación entre agentes visible en vivo en Slack, Discord u
+     otra plataforma, y el humano participa como uno más.
+   - Condiciones:
+     - SQLite sigue siendo la fuente de verdad: el chat refleja los eventos de
+       collab y lo que escribe el humano entra como mensaje de `human`.
+     - El bot hace de puente hacia una sesión de Claude Code, en lugar de
+       llamar a la API directamente y perder herramientas, skills y
+       suscripción.
+     - Restringir quién puede dar órdenes desde el canal.
+   - No resuelve continuidad, push ni bugs. Añade un servicio en TypeScript
+     junto al núcleo en Go. Las capacidades del Chat SDK están sin verificar
+     en su documentación.
