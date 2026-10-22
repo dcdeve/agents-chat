@@ -1,0 +1,5 @@
+[
+  {"name":"codex-main","product":"Codex CLI","official_url":"https://learn.chatgpt.com/docs/extend/mcp?surface=cli","version":"0.163.0","configuration":"REPLACE with model, reasoning effort, MCP timeout, permissions, sandbox, skill path and adapter settings"},
+  {"name":"claude-review","product":"Claude Code","official_url":"https://code.claude.com/docs/en/mcp","version":"2.1.92","configuration":"REPLACE with model, MCP timeout, permissions, skill path and adapter settings"},
+  {"name":"codex-worker","product":"Codex CLI","official_url":"https://learn.chatgpt.com/docs/extend/mcp?surface=cli","version":"0.163.0","configuration":"REPLACE with model, reasoning effort, MCP timeout, permissions, sandbox, skill path and adapter settings"}
+]
